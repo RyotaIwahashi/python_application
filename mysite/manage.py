@@ -1,5 +1,17 @@
 #!/usr/bin/env python
-"""Django プロジェクトに対する様々な操作を行うためのコマンドラインユーティリティ"""
+"""
+Django プロジェクトに対する様々な操作を行うためのコマンドラインユーティリティ
+`django-admin startproject mysite`を実行すると生成される。
+
+- シェルでDjangoと対話型で、インポートなどの処理を行う
+`python manage.py shell`
+- Djangoアプリケーションを起動する(第1引数でポート指定可能)
+`python manage.py runserver`
+- Djangoアプリケーションを新たに作成する
+`python manage.py startapp <app名>`
+- adminサイトにログインできるユーザを作成する
+`python manage.py createsuperuser`
+"""
 import os
 import sys
 
