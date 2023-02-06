@@ -3,6 +3,7 @@ from django.template import loader
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
+from django.utils import timezone
 
 from .models import Question, Choice
 
@@ -18,11 +19,22 @@ from .models import Question, Choice
 # つまりデフォルトで、いろんな操作をして諸々の変数を生成してくれて、それらを元に各テンプレートを呼び出すことができる。
 class IndexView(generic.ListView):  #  ListViewは、オブジェクトのリストを表示する汎用ビュー
     template_name = "polls/index.html"  # デフォルトでは、<app name>/<model name>_list.html というテンプレートを使う。
-    context_object_name = "latest_question_list"  # ListView では、自動的に生成されるコンテキスト変数は question_list になる。これを上書きするには、context_object_name 属性を与え、文字列で変数名を指定する。
 
-    def get_queryset(self):  # これは多分、デフォルトではQuestionのデータをすべて返すので、代わりにこのクエリを使うよう指定しているはず。
-        """Return the last five published questions."""
-        return Question.objects.order_by("-pub_date")[:5]
+    # ListView では、自動的に生成されるコンテキスト変数は question_list になる。
+    # これを上書きするには、context_object_name 属性を与え、文字列で変数名を指定する。
+    # ここで言うcontextとは、辞書型のデータで、as_view()を実行後に実行されるget_context_data()で取得されるデータ。
+    # contextには、pagination関連やQueryset関連、View関連(template_nameから引っ張ってきたhtmlも含む)の情報が入っている。
+    # コンテキスト変数(置換変数)とは、IndexViewクラスのインスタンスが開始されるまで解決されることのない変数を参照できる。インスタンス生成時に置換される。インスタンス内でグローバルな変数。
+    context_object_name = "latest_question_list"
+
+    # これは多分、get_context_data() でデフォルトではQuestionのデータをすべて返すので、
+    # 代わりにこのクエリを使うよう指定しているはず。
+    def get_queryset(self):
+        """
+        Return the last five published questions (not including those set to be
+        published in the future).
+        """
+        return Question.objects.filter(pub_date__lte=timezone.now()).order_by("-pub_date")[:5]
 
 
 # def detail(request, question_id):
@@ -41,6 +53,9 @@ class IndexView(generic.ListView):  #  ListViewは、オブジェクトのリス
 class DetailView(generic.DetailView):  #  DetailViewは、あるタイプのオブジェクトの詳細ページを表示する汎用ビュー
     model = Question  # 各汎用ビューは自分がどのモデルに対して動作するのか知っておく
     template_name = "polls/detail.html"  # デフォルトは、<app name>/<model name>_detail.html というテンプレートを使う。
+
+    def get_queryset(self):
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 
 # def results(request, question_id):
